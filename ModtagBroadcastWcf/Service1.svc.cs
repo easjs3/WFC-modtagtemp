@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -13,14 +14,19 @@ namespace ModtagBroadcastWcf
     // NOTE: In order to launch WCF Test Client for testing this service, please select Service1.svc or Service1.svc.cs at the Solution Explorer and start debugging.
     public class Service1 : IService1
     {
+        private static string GetConnectionString()
+        {
+            ConnectionStringSettingsCollection connectionStringSettingsCollection = ConfigurationManager.ConnectionStrings;
+            ConnectionStringSettings connStringSettings = connectionStringSettingsCollection["MikDatabaseAzure"];
+            return connStringSettings.ConnectionString;
+        }
 
-        private const string ConnectionString = "Server=tcp:magnusserver.database.windows.net,1433;Initial Catalog=MagnusDB;Persist Security Info=False;User ID=magnus;Password=Password1;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
 
         public IList<Temperatur> GetAllTemps()
         {
             const string selectAllTemps = "Select * from Temps";
 
-            using(SqlConnection databaseConnection = new SqlConnection(ConnectionString))
+            using(SqlConnection databaseConnection = new SqlConnection(GetConnectionString()))
             {
                 databaseConnection.Open();
                 using(SqlCommand selectCommand = new SqlCommand(selectAllTemps, databaseConnection))
@@ -49,13 +55,13 @@ namespace ModtagBroadcastWcf
 
         public int PostTempToList(string temp)
         {
-            const string postTemp = "insert into Temps (Temp) values (@temp)";
-            using (SqlConnection databaseConnection = new SqlConnection(ConnectionString))
+            const string postTemp = "insert into Temps (Temps) values (@temps)";
+            using (SqlConnection databaseConnection = new SqlConnection(GetConnectionString()))
             {
                 databaseConnection.Open();
                 using(SqlCommand insertCommand = new SqlCommand(postTemp, databaseConnection))
                 {
-                    insertCommand.Parameters.AddWithValue("@temp", temp);
+                    insertCommand.Parameters.AddWithValue("@temps", temp);
 
                     int rowsAffected = insertCommand.ExecuteNonQuery();
                     return rowsAffected;
